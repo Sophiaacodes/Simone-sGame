@@ -3,18 +3,26 @@
     <head>
         <meta charset="UTF-8"> <!--It tells the browser which character encoding the page uses — basically, how to interpret all the letters and symbols in your file.-->
         <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--That one controls how your page behaves on phones and different screen sizes.-->
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
+        </style>
         <link rel="stylesheet" href="style.css">
-        <title>Simone's life</title>
+        <title>Simone</title>
     </head>
     <body>
-
         <div id="background">
-            <h1>Simone's life</h1>
-            <p>
-            This is the beginning of my interactive world. Soon, my character will move, jump, and explore.
-            </p>
-            <img id="player" src="mario.png" alt="player" width="80"></img>
+
+            <div class="titles">
+                <div id="Simone" class="pixelify-sans-title">SIMONE'S LIFE</div>
+                <div id="compleanno" class="pixelify-sans-title">
+                BUON COMPLEANNO AMORE! <img id="heart" src="https://img.icons8.com/?size=100&id=upd5xh7hPe0R&format=png&color=000000" alt="<3">
+                </div>
+            </div>
+            <img id="background-image" src="760599e733daafed1584f16e671d4b1a.jpg" alt="background-image">  
+            <img id="player" src="mario.png" alt="player" width="80">
             <div id="ground"></div>
+
         </div>
-    </body>
+    <script src="script.js"></script></body>
 </html>
+
