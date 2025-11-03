@@ -1,3 +1,4 @@
+
 *{box-sizing: border-box;}
 
 html, body{
@@ -7,9 +8,19 @@ html, body{
     overscroll-behavior: none;
 }
 
+
+/*keyframe mantenere proprietà*/
+#keyframe{
+    position: absolute;
+    width: 35%;
+    height: 30%;
+    overflow: hidden;
+    z-index: 3;
+}
+
 #Simone, #compleanno{
     position: absolute;
-    bottom: 50%;
+    bottom: 55%;
     left: 50%;
     transform: translateX(-53%);
     padding: 0.2px;
@@ -19,9 +30,32 @@ html, body{
 
 #compleanno{
     position: absolute;
-    bottom: 25%;
+    bottom: 30%;
     left: 50%;
     font-size: 25px;
+    white-space: nowrap;
+}
+
+@keyframes Poundingheart {
+    from {width: 10%;}
+    to {width: 15%;}
+    
+}
+
+#heart{
+    width: 10%;
+    transform: translateY(25%);
+    animation-name: Poundingheart;
+    animation-iteration-count: infinite;
+    animation-duration: 1.5s;
+    animation-range-end: initial;
+}
+
+#btn{
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    transform: translateX(-53%);
 }
 
 .titles{
@@ -33,6 +67,7 @@ html, body{
     height: 150px;
     width: 500px;
     border-radius: 0.5em;
+    z-index: 10;
 }
 
 .pixelify-sans-title {
@@ -43,38 +78,146 @@ html, body{
   font-style: normal;
 }
 
+
+
+
+/*ELEMENTI DI BASE DEL GIOCO*/
+
+#background{
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: url("./assets/bg/mountains.webp") repeat-x top left;
+    background-size: 1140px auto;
+}
+
+#parallax-back, #parallax-front {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    inset: 0;
+    pointer-events: none;
+    background-repeat: repeat-x;
+    background-size: 1028px auto;
+    image-rendering: pixelated;
+}
+
+#parallax-back {
+    background-image: url("./assets/bg/hills.webp");
+    opacity: .9;
+    z-index: 0;
+    top: 323px;
+}
+#parallax-front {
+    background-image: url("./assets/bg/clouds.webp"); 
+    background-size: 800px auto;
+    opacity: .55;
+    z-index: 2;
+    top: 50px;
+}
+
 #ground {
     position:absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     height: 80px;
-    background-color: #4f2d08;
+    background-color: black;
+    image-rendering: pixelated;
+    display: none;
+}
+
+:root { --tile: 32px}
+
+#world {
+    position: absolute;
+    inset: 0;
+    z-index: 99999 !important;
+}
+
+.tile {
+    --w: 1;
+    --h: 1;
+    position: absolute;
+    width: calc(var(--w)*var(--tile));
+    height: calc(var(--h)*var(--tile));
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+}
+
+.tile.ground.normal {
+    background-image: url("./assets/tiles/ground_320.png");
+}
+.tile.ground.angled-left {
+    background-image: url("./assets/tiles/ground_320_01.png");
+}
+.tile.ground.angled-right {
+    background-image: url("./assets/tiles/ground_320_01.png");
+    transform: scaleX(-1);
+    transform-origin: center;
+}
+.tile.ground.vertical-left {
+    background-image: url("./assets/tiles/ground_320_02.png");
+}
+.tile.ground.vertical-right {
+    background-image: url("./assets/tiles/ground_320_02.png");
+    transform: scaleX(-1);
+    transform-origin: center;
+}
+.tile.ground.underground {
+    background-image: url("./assets/tiles/ground_320_03.png");
+}
+
+
+.tile.brick {
+    background-image: url("./assets/tiles/brick.png");
+}
+.tile.full-surprise {
+    background-image: url("./assets/tiles/brick_32_suprise.png");
+}
+.tile.empty-surprise {
+    background-image: url("./assets/tiles/brick_32_suprise_opened.png");
 }
 
 #player {
     position:absolute;
-    bottom: 60px;
+    bottom: 97px;
     left: 20%;
     transform: translateX(-50%);
-    transition: left 0.15s;
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
 }
 
-#background{
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+.idle{
+  background: url("./assets/sprites/Player_idle.png") no-repeat 0 0 / contain;
 }
 
-#background-image{
-    bottom: 0;
-    width: 100%;
-    overflow: hidden;
+.player-run{
+    background-image: url("./assets/sprites/player_run_sheet.png");
+    background-repeat: no-repeat;
+    background-size: 400% 100%;
+    animation: run 0.36s steps(4, end) infinite;
+      background-position: 0 0;            
 }
 
-#heart{
-    width: 10%;
-    transform: translateY(25%);
+@keyframes run {
+    from {background-position-x: 0%;}
+    to {background-position-x: 100%;}
 }
+
+#scoreBoard {
+    display: none;
+    position: absolute;
+    top: 20px;
+    left: 30px;
+    color: white;
+    font-size: 24px;
+    font-family: "Pixelify Sans", sans-serif;
+    z-index: 5;
+}
+
 
