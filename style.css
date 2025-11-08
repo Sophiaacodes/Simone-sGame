@@ -106,6 +106,7 @@ html, body{
 
 #parallax-back {
     background-image: url("./assets/bg/hills.webp");
+    background-repeat: repeat-x bottom left;
     opacity: .9;
     z-index: 0;
     top: 290px;
@@ -186,12 +187,11 @@ html, body{
     background-image: url("./assets/tiles/brick_32_suprise.png");
 }
 .tile.empty-surprise {
-    background-image: url("./assets/tiles/brick_32_suprise_opened.png");
+    background-image: url("./assets/tiles/brick_32_surprise_opened.png");
 }
 
 #player {
     position:absolute;
-    transform: translateX(-50%);
     width: 64px;
     height: 64px;
     image-rendering: pixelated;
@@ -224,6 +224,56 @@ html, body{
     background-image: url("./assets/sprites/Player_jump_fall.png");
     background-repeat: no-repeat;
     background-size: 100% 100%;
+}
+
+.player.paolino-idle{
+  background: url("./assets/sprites/paolino_idle.png") no-repeat 0 0 / contain;
+}
+
+.player.paolino-run {
+    background-image: url("./assets/sprites/paolino_run_sheet.png");
+    background-repeat: no-repeat;
+    background-size: 400% 100%;
+    animation: run 0.36s steps(4, end) infinite;
+    background-position: 0 0; 
+}
+
+.player.paolino-jump{
+    background-image: url("./assets/sprites/paolino_jump_takeofft.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+.player.paolino-fall{
+    background-image: url("./assets/sprites/paolino_jump_fall.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+.player.paolino-attack{
+    background-image: url("./assets/sprites/paolino_attack_sheet.png");
+    background-repeat: no-repeat;
+    background-size: 400% 100%;
+    animation: run 0.36s steps(4, end) infinite;
+    background-position: 0 0; 
+}
+
+.ui {
+    position: absolute;
+    width: var(--w, 16px);
+    height: var(--h, 16px);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+    z-index: 5;
+}
+
+.ui-burger {
+    background-image: url("assets/ui/burger.png");
+}
+
+.ui-coke {
+    background-image: url("assets/ui/coke.png");
 }
 
 #scoreBoard {
