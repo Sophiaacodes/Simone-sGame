@@ -13,6 +13,7 @@ scoreBoard.id = "scoreBoard";
 world.appendChild(scoreBoard);
 
 //SCOMPARSA DELLA SCHERMATA INIZIALE
+let gameStarted = false;
 let overlayRemoved = false;
 document.addEventListener("keydown", (e) => {
 
@@ -22,6 +23,7 @@ document.addEventListener("keydown", (e) => {
             document.getElementById("keyframe")?.remove();
             scoreBoard.style.display = "block";
             overlayRemoved = true;
+            gameStarted = true;
 }}});
 
 //Contare punti
@@ -65,6 +67,7 @@ const legend = {
     'B': { classes: "brick", w: 1, h: 1, solid: true},
     'C': { classes: "full-surprise", w: 1, h: 1,solid: true, payload: "coke"},
     'M': { classes: "full-surprise", w: 1, h: 1,solid: true, payload: "burger"},
+    'S': { classes: "", w: 1, h: 1, solid: false, enemyType: 'spider' },
 };
 
 const level = [
@@ -75,7 +78,7 @@ const level = [
     "                  BBBB                                                               ",
     "                           BMBBB                                                     ",
     "                                                    $ € € € € € € € € € ?            ",
-    "                                                                                     ",
+    "                                   S                                                 ",
     "                                                    ! X X X X X X X X X #            ",
     "                                                                                     ",
     "$ € € € € € € € € € € € € € € € € € ?     $ € € € € X X X X X X X X X X X € € € € € ?",
@@ -90,10 +93,32 @@ function aabbOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
            by < ay + ah;
 }
 
+//enemies
+const spider_w = 64;
+const spider_h = 64;
+const enemies = [];
+
+function makeSpider(xpx, xpy){
+    const el = document.createElement('div');
+    el.className = 'enemy spider walk';
+    el.style.left = xpx + 'px';
+    el.style.bottom = xpy + 'px';
+    levelEl.appendChild(el);
+ 
+    enemies.push({
+        type : 'spider',
+        el, x : xpx, y : xpy, w: spider_w, h : spider_h,
+        vx: 80, vy:0, dir: -1,
+        alive: true, onGround: false
+    })
+}
+
 let solid = [];
 
 function buildLevel (rows, legend) 
     { solid = [];
+      enemies.length=0;
+
         const H = rows.length; for (let r=0; r<H; r++) { 
         const line = rows [H - 1 - r]; 
         let xc = 0; while (xc < line.length) { 
@@ -101,18 +126,23 @@ function buildLevel (rows, legend)
             const entry = legend[ch]; 
             if (!entry) { xc++; continue; } 
 
-            const { classes = "", w = 1, h = 1, solid: isSolid = false, payload = null } = entry; 
+            const { classes = "", w = 1, h = 1, solid: isSolid = false, payload = null, enemyType = null} = entry; 
+
+            if (!enemyType) {
             const el = addTile({ x: xc, y: r, w, h, classes, payload });
-
-
-            if (isSolid) {
-                solid.push ({
-                    x: xc * cell,
-                    y: r * cell,
-                    w: w * cell,
-                    h: h * cell,
-                    el,
-                })
+                if (isSolid) {
+                    solid.push ({
+                     x: xc * cell,
+                     y: r * cell,
+                     w: w * cell,
+                     h: h * cell,
+                     el,
+                    })
+                }   
+         } else if (enemyType === 'spider') {
+                const xpx = xc * cell + (cell - spider_w) / 2;
+                const xpy = r * cell + (cell - spider_h);
+                makeSpider (xpx, xpy);
             }
             xc += w; 
         } 
@@ -124,21 +154,6 @@ const levelWidth = solid.reduce((max, s) => Math.max(max, s.x + s.w), 0);
 
 //console.log(solid);
 
-/*
-function checkCollision() {
-    const playerRect = player.getBoundingClientRect();
-    const tiles = document.querySelectorAll(".tile");
-    for (const tile of tiles) {
-        const tileRect = tile.getBoundingClientRect();
-        if (aabbOverlap(
-            playerRect.left, playerRect.top, playerRect.width, playerRect.height,
-            tileRect.left, tileRect.top, tileRect.width, tileRect.height))
-        return true;
-
-    }};
-
-checkCollision();
-console.log(checkCollision());*/
 
 //MOVIMENTO DEL PERSONAGGIO FISICA
 let x=200;
@@ -150,7 +165,11 @@ const moveSpeed = 220;
 const jumpSpeed = 420;
 const gravity = 650;
 const maxFallSpeed = 900;
-const enemySpeed = 300;
+
+const run_ref_speed = 220;
+const run_ref_dur = 0.60;
+const run_min_dur = 0.18;
+const run_max_dur = 0.60;
 
 const playerdimensions = (() => {
     const rect = player.getBoundingClientRect();
@@ -172,7 +191,7 @@ function updateAnimation() {
     const skin = paolinoActive ? 'paolino' : 'player';
     const other = paolinoActive ? 'player' : 'paolino';
 
-    const isRunning = (keys.left || keys.right) && onGround;
+    const isRunning = (Math.abs(vx)>1) && onGround;
     const isAirUp = !onGround && vy > 0;
     const isAirDown =!onGround && vy < 0;
 
@@ -213,6 +232,71 @@ document.addEventListener("keyup", (e) => {
 });
 
 //console.log({x,y,vx,vy,onGround})
+
+//movimento nemici
+function willFallAhead(e) {
+  const look = 6;
+  const footX = e.x + (e.dir > 0 ? e.w + look : -look);
+  const footY = e.y - 2;
+  const probeW = 2, probeH = 2;
+
+  for (const s of solid) {
+    if (aabbOverlap(footX, footY, probeW, probeH, s.x, s.y, s.w, s.h)) {
+      return false;
+    }
+  }
+  return true; 
+}
+
+function moveSpider(e, dt){
+  // --- ORIZZONTALE ---
+  if (gameStarted) {
+    let newX = e.x + e.vx * e.dir * dt;
+    let hitWall = false;
+
+    for (const s of solid) {
+      if (aabbOverlap(newX, e.y, e.w, e.h, s.x, s.y, s.w, s.h)) {
+        hitWall = true;
+        break;
+      }
+    }
+    if (hitWall) {
+     e.dir *= -1; 
+     } else {
+     e.x = newX;
+    }
+
+    if (e.onGround && willFallAhead(e)) {
+      e.dir *= -1;
+    }}
+
+  // --- VERTICALE (gravità) ---
+  e.vy -= gravity * dt;
+  if (e.vy < -maxFallSpeed) e.vy = -maxFallSpeed;
+
+  let newY = e.y + e.vy * dt;
+  e.onGround = false;
+
+  for (const s of solid) {
+    if (aabbOverlap(e.x, newY, e.w, e.h, s.x, s.y, s.w, s.h)) {
+      if (e.vy < 0) { 
+        newY = s.y + s.h;
+        e.vy = 0;
+        e.onGround = true;
+      } else if (e.vy > 0) { 
+        newY = s.y - e.h;
+        e.vy = 0;
+      }
+    }
+  }
+  e.y = newY;
+
+
+  e.el.style.left = e.x + 'px';
+  e.el.style.bottom = e.y + 'px';
+  e.el.style.transform = e.dir < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+}
+
 
 //collisioni mondo e movimento
 function moveAndCollideX(dx){
@@ -368,11 +452,37 @@ function updateParallax() {
     pFront.style.backgroundPositionX = -(camX * 0.6) + "px";
 }
 
+//sincronizzazione passi personaggio a controlli
+ let lastRunDur = null;
+  function setRunDur(dur) {
+  if (lastRunDur === null || Math.abs(dur - lastRunDur) > 0.04) {
+    player.style.setProperty('--run-dur', `${dur}s`);
+    lastRunDur = dur;
+        }
+    }
+
+  function resetRunDur() {
+  if (lastRunDur !== run_ref_dur) {
+    player.style.setProperty('--run-dur', `${run_ref_dur}s`);
+    lastRunDur = run_ref_dur;
+        }
+    }
+
+  const speed = Math.abs(vx);
+    if (onGround && speed > 1) {
+      let dur = (run_ref_speed / speed) * run_ref_dur;
+      if (dur < run_min_dur) dur = run_min_dur;
+      if (dur > run_max_dur) dur = run_max_dur;
+      setRunDur(dur);
+    } else {
+        resetRunDur();
+    }
+
 // --- GAME LOOP ---
 let lastTime = null;
 function loop(t) {
   if (lastTime == null) lastTime = t;
-  const dt = Math.min((t - lastTime) / 1000, 0.033); // in secondi, clamp a ~30fps max step
+  const dt = Math.min((t - lastTime) / 1000, 1/60);
   lastTime = t;
 
   // Input → velocità orizzontale
@@ -386,6 +496,24 @@ function loop(t) {
   // Integrazione + collisioni
   moveAndCollideX(vx * dt);
   moveAndCollideY(vy * dt);
+
+  //sincronizzazione passi personaggio a controlli
+  const speed = Math.abs(vx);
+    if (onGround && speed > 1) {
+      let dur = (run_ref_speed / speed) * run_ref_dur;
+      if (dur < run_min_dur) dur = run_min_dur;
+      if (dur > run_max_dur) dur = run_max_dur;
+      setRunDur(dur);
+    } else {
+        resetRunDur();
+    }
+
+  //far muovere i nemici
+  for (const e of enemies) {
+    if (!e.alive) continue;
+    moveSpider(e, dt);   
+  }
+
 
   updateItems(dt);
 
