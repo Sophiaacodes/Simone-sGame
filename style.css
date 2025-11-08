@@ -204,14 +204,14 @@ html, body{
 .player-run{
     background-image: url("./assets/sprites/player_run_sheet.png");
     background-repeat: no-repeat;
-    background-size: 400% 100%;
-    animation: run 0.36s steps(4, end) infinite;
+    background-size: auto 100%;
+    animation: run var(--run-dur, 0.36s) steps(4, end) infinite;
     background-position: 0 0;            
 }
 
 @keyframes run {
-    from {background-position-x: 0%;}
-    to {background-position-x: 100%;}
+    from {background-position: 0 0;}
+    to {background-position: -256px 0;}
 }
 
 .player-jump{
@@ -233,8 +233,8 @@ html, body{
 .player.paolino-run {
     background-image: url("./assets/sprites/paolino_run_sheet.png");
     background-repeat: no-repeat;
-    background-size: 400% 100%;
-    animation: run 0.36s steps(4, end) infinite;
+    background-size: auto 100%;
+    animation: run var(--run-dur, 0.36s) steps(4, end) infinite;
     background-position: 0 0; 
 }
 
@@ -253,9 +253,36 @@ html, body{
 .player.paolino-attack{
     background-image: url("./assets/sprites/paolino_attack_sheet.png");
     background-repeat: no-repeat;
-    background-size: 400% 100%;
-    animation: run 0.36s steps(4, end) infinite;
+    background-size: auto 100%;
+    animation: run var(--run-dur, 0.36s) steps(4, end) infinite;
     background-position: 0 0; 
+}
+
+.enemy.spider{
+  position: absolute;
+  width: 64px;
+  height: 32px;
+  background-position: 0 0;
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.enemy.spider.walk {
+  background-image: url("./assets/sprites/spider_walk_sheet.png"); 
+  animation: spiderWalk var(--spd, 0.5s) steps(2) infinite;
+  transform: scaleX(1);
+}
+
+.enemy.spider.dead {
+  animation: none !important;
+  filter: grayscale(30%);
+  transform: scaleX(1);
+}
+
+@keyframes spiderWalk {
+  from { background-position: 0 0; }
+  to   { background-position: -128px 0; }
 }
 
 .ui {
