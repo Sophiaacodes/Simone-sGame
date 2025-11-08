@@ -5,7 +5,7 @@ const coin = document.getElementById("coin");
 const pBack  = document.getElementById("parallax-back");
 const pFront = document.getElementById("parallax-front");
 const world  = document.getElementById("world");
-const levelEl = document.getElementById("level")
+const levelEl = document.getElementById("level");
 
 //scoreboard
 const scoreBoard = document.createElement("div");
@@ -24,16 +24,31 @@ document.addEventListener("keydown", (e) => {
             overlayRemoved = true;
 }}});
 
+//Contare punti
+let cokeCount = 0;
+
+function updateScoreBoard() {
+    scoreBoard.textContent= 'Points: ' + cokeCount;
+}
+
+function addCoke(n=1) {
+    cokeCount += n;
+    updateScoreBoard();
+}
+
+updateScoreBoard();
+
 //POSIZIONAMENTO ELEMENTI DI GIOCO
 const cell = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile'));
 
-function addTile({x, y, w=1, h=1, classes=""}) {
+function addTile({x, y, w=1, h=1, classes="", payload = null}) {
     const tile = document.createElement("div");
     tile.className = `tile ${classes}`;
     tile.style.setProperty("--w", w);
     tile.style.setProperty("--h", h);
     tile.style.left = (x * cell) + "px";
     tile.style.bottom = (y * cell) + "px";
+    if (payload) tile.dataset.payload = payload;
     levelEl.appendChild(tile);
     return tile;
 }
@@ -48,16 +63,17 @@ const legend = {
     '#': { classes: "ground vertical-right", w: 2, h: 2, solid: true},
     'X': { classes: "ground underground", w: 2, h: 2, solid: true},
     'B': { classes: "brick", w: 1, h: 1, solid: true},
-    'S': { classes: "full-surprise", w: 1, h: 1,solid: true},
+    'C': { classes: "full-surprise", w: 1, h: 1,solid: true, payload: "coke"},
+    'M': { classes: "full-surprise", w: 1, h: 1,solid: true, payload: "burger"},
 };
 
 const level = [
     "                                                                                     ",
     "                                                                                     ",
     "                                                                                     ",
-    "        BSBBB                                                                        ",
+    "        BCBBB                                                                        ",
     "                  BBBB                                                               ",
-    "                           BSBBB                                                     ",
+    "                           BMBBB                                                     ",
     "                                                    $ € € € € € € € € € ?            ",
     "                                                                                     ",
     "                                                    ! X X X X X X X X X #            ",
@@ -84,16 +100,18 @@ function buildLevel (rows, legend)
             const ch = line[xc]; 
             const entry = legend[ch]; 
             if (!entry) { xc++; continue; } 
-            const {classes="", w=1, h=1} = entry; 
-            
-            addTile({x: xc, y: r, w, h, classes}); 
 
-            if (solid) {
+            const { classes = "", w = 1, h = 1, solid: isSolid = false, payload = null } = entry; 
+            const el = addTile({ x: xc, y: r, w, h, classes, payload });
+
+
+            if (isSolid) {
                 solid.push ({
                     x: xc * cell,
                     y: r * cell,
                     w: w * cell,
-                    h: h * cell
+                    h: h * cell,
+                    el,
                 })
             }
             xc += w; 
@@ -132,6 +150,7 @@ const moveSpeed = 220;
 const jumpSpeed = 420;
 const gravity = 650;
 const maxFallSpeed = 900;
+const enemySpeed = 300;
 
 const playerdimensions = (() => {
     const rect = player.getBoundingClientRect();
@@ -146,20 +165,35 @@ function applyPosition () {
     const screenX = x - camX;
     player.style.left = screenX + "px";
     player.style.bottom = y + "px";
-}
+};
 
 //animazioni personaggio
 function updateAnimation() {
-    const isRunning = keys.left || keys.right;
-    player.classList.toggle("player-run", isRunning);
-    player.classList.toggle("idle", !isRunning);
-    const isJumping = keys.up;
-    player.classList.toggle("player-jump", isJumping && !onGround && vy > 0);
-    player.classList.toggle("player-fall", !isJumping && !onGround && vy < 0);
-    
-  if (keys.left && !keys.right)  player.style.transform = "translateX(-50%) scaleX(-1)";
-  else                           player.style.transform = "translateX(-50%)";
-}
+    const skin = paolinoActive ? 'paolino' : 'player';
+    const other = paolinoActive ? 'player' : 'paolino';
+
+    const isRunning = (keys.left || keys.right) && onGround;
+    const isAirUp = !onGround && vy > 0;
+    const isAirDown =!onGround && vy < 0;
+
+    player.classList.remove('idle','player-run','player-jump','player-fall','paolino-idle','paolino-run','paolino-jump','paolino-fall');
+
+    if (skin === 'player') {
+        if (!isRunning && !isAirUp && !isAirDown) player.classList.add('idle');
+        if (isRunning)  player.classList.add('player-run');
+        if (isAirUp)    player.classList.add('player-jump');
+        if (isAirDown)  player.classList.add('player-fall');
+    } else { 
+        if (!isRunning && !isAirUp && !isAirDown) player.classList.add('paolino-idle');
+        if (isRunning)  player.classList.add('paolino-run');
+        if (isAirUp)    player.classList.add('paolino-jump');
+        if (isAirDown)  player.classList.add('paolino-fall');
+    }
+
+
+    if (keys.left && !keys.right)  player.style.transform = "scaleX(-1)";
+  else                           player.style.transform = null;
+};
 
 document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowRight"){keys.right = true; updateAnimation();}
@@ -194,28 +228,128 @@ function moveAndCollideX(dx){
     x = newX;
 }
 
+//full to empty surprise
 function moveAndCollideY(dy){
     let newY = y + dy;
     onGround = false;
+    let hitCeilTile = null;
+
     for (const s of solid) {
         if (aabbOverlap(
             x, newY, playerdimensions.w, playerdimensions.h, s.x, s.y, s.w, s.h)) {
-                if (dy > 0) { newY = s.y - playerdimensions.h; }
-                else if (dy < 0) { newY = s.y + s.h; onGround = true; }
-                vy = 0;
+                if (dy > 0) {
+                     newY = s.y - playerdimensions.h; 
+                     vy=0;
+                     hitCeilTile = s;
+                    }
+                else if (dy < 0) { 
+                    newY = s.y + s.h; 
+                    vy=0;
+                    onGround = true; 
                 }
+                
+        }
     }
     y = newY;
+
+    if(hitCeilTile && hitCeilTile.el && hitCeilTile.el.classList.contains('full-surprise')) {
+        const payload = hitCeilTile.el.dataset.payload || 'coke';
+
+        hitCeilTile.el.classList.remove('full-surprise');
+        hitCeilTile.el.classList.add('empty-surprise');
+
+        if (payload === 'coke'){
+            spawnCokeAbove(hitCeilTile);
+        } else if (payload === 'burger'){
+            spawnBurgerAbove(hitCeilTile);
+        }
+    }
 }
 
-/* LIMITI DEL MONDO
-function clampToWorld() {
-  const worldRect  = background.getBoundingClientRect();
-  const minX = 0;
-  const maxX = worldRect.width - playerdimensions.w;
-  if (x < minX) x = minX;
-  if (x > maxX) x = maxX;
-}*/
+//comportamento aabb con burger o coke
+const items = [];
+
+function updateItems(dt){
+    for (const it of items) {
+        if (!it.alive) continue;
+
+    
+    it.el.style.left = it.x + 'px';
+    it.el.style.bottom = it.y + 'px';
+    
+    if (aabbOverlap(x, y, playerdimensions.w, playerdimensions.h, it.x, it.y, it.w, it.h)) {
+        if (it.type === 'coke') {
+            addCoke(1);
+        } else if (it.type === 'burger'){
+            activatePaolinoPower(30000)
+        }
+        it.alive = false;
+        it.el.remove();
+    }
+    }
+}
+
+//azioni di spawn coke e burger
+function spawnCokeAbove(s, {offsetX = 0, offsetY = 0} = {}) {
+    const el = document.createElement('div');
+    el.className = 'ui ui-coke';
+    el.style.setProperty('--w', '32px');
+    el.style.setProperty('--h', '32px');
+    const w = 32, h = 32;
+    const x = s.x + s.w / 2  - w / 2 + offsetX;
+    const y = s.y + s.h + offsetY;
+
+    el.style.left = x + 'px';
+    el.style.bottom = y + 'px';
+    levelEl.appendChild(el);
+
+    items.push({el, type:'coke', x,y,w,h, vx:0, vy:0, alive:true, pickup:true});
+
+    el.animate([
+        { transform:'translateY(0px)' },
+        { transform:'translateY(12px)' },
+        { transform:'translateY(0px)' }
+        ], { duration: 250, easing:'ease-out' });
+};
+
+function spawnBurgerAbove(s, {offsetX = 0, offsetY = 0} = {}) {
+    const el = document.createElement('div');
+    el.className = 'ui ui-burger';
+    el.style.setProperty('--w', '28px'); 
+    el.style.setProperty('--h', '28px');
+    const w = 28, h = 28;
+    const x = s.x + s.w / 2  - w / 2 + offsetX;
+    const y = s.y + s.h + offsetY;
+
+    el.style.left = x + 'px';
+    el.style.bottom = y + 'px';
+    levelEl.appendChild(el);
+
+    el.animate([
+        { transform:'translateY(0px)' },
+        { transform:'translateY(12px)' },
+        { transform:'translateY(0px)' }
+        ], { duration: 250, easing:'ease-out' });
+
+    items.push({el, type:'burger', x,y,w,h, vx:60, vy:120, alive:true, pickup:true});
+}
+
+//paolino player
+player.classList.add('player')
+
+let paolinoActive = false;
+let paolinoTimeoutId = null;
+
+function activatePaolinoPower(ms = 30000) {
+    paolinoActive=true;
+    if (paolinoTimeoutId) clearTimeout(paolinoTimeoutId);
+    paolinoTimeoutId= setTimeout(() => {
+        paolinoActive=false;
+        updateAnimation();
+    }, ms);
+    updateAnimation();
+};
+
 
 //Camera
 let camX = 0;
@@ -252,6 +386,8 @@ function loop(t) {
   // Integrazione + collisioni
   moveAndCollideX(vx * dt);
   moveAndCollideY(vy * dt);
+
+  updateItems(dt);
 
   // Aggiornamento camera
   const viewportWidth = background.getBoundingClientRect().width;
