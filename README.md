@@ -55,7 +55,7 @@ const legend = {
 ```
 ---
 
-##🗺️ Roadmap (idee)
+## 🗺️ Roadmap (idee)
 - Più livelli / caricamento da file
 - Checkpoint
 - Audio (salto, item, kill, win/lose)
@@ -64,7 +64,7 @@ const legend = {
 - Mobile touch controls
 ---
 
-##📜 Licenze & Crediti
+## 📜 Licenze & Crediti
 
 Codice: specifica la licenza (es. MIT) se vuoi che altri possano riutilizzarlo.
 Sprite, tile e sfondi: Sophiaacodes.
