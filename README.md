@@ -52,3 +52,19 @@ const legend = {
   'M': { classes: "full-surprise",         w: 1, h: 1, solid: true, payload: "burger" },
   'S': { classes: "",                      w: 1, h: 1, solid: false, enemyType: "spider" }
 };
+```
+---
+
+##🗺️ Roadmap (idee)
+- Più livelli / caricamento da file
+- Checkpoint
+- Audio (salto, item, kill, win/lose)
+- HUD avanzato (vite, timer)
+- Altri nemici / pattern di movimento
+- Mobile touch controls
+---
+
+##📜 Licenze & Crediti
+
+Codice: specifica la licenza (es. MIT) se vuoi che altri possano riutilizzarlo.
+Sprite, tile e sfondi: Sophiaacodes.
