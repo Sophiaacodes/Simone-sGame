@@ -661,8 +661,8 @@ function layoutParallax(){
   const hillsFromGround = 1 * cell;
   const cloudsFromTop   = 1 * cell;
 
-  const hillsH  = Math.round(viewportHeight * 0.30); 
-  const cloudsH = Math.round(viewportHeight * 0.30); 
+  const hillsH  = Math.round(viewportHeight * 0.40); 
+  const cloudsH = Math.round(viewportHeight * 0.35); 
 
   pBack.style.backgroundSize  = `auto ${hillsH}px`;
   pBack.style.backgroundPosition = `left calc(100% - ${hillsFromGround}px)`;
