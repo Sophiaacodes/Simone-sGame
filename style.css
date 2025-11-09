@@ -254,8 +254,13 @@ html, body{
     background-image: url("./assets/sprites/paolino_attack_sheet.png");
     background-repeat: no-repeat;
     background-size: auto 100%;
-    animation: run var(--run-dur, 0.36s) steps(4, end) infinite;
+    animation: paolinoAttack 0.60s steps(4) 1 forwards;
     background-position: 0 0; 
+}
+
+@keyframes paolinoAttack{
+    from { background-position: 0 0; }
+    to   { background-position: -256px 0; } 
 }
 
 .enemy.spider{
@@ -314,4 +319,49 @@ html, body{
     z-index: 5;
 }
 
+/*schermate finali*/
+#lostgame {
+    display: none;
+    position: absolute;
+    width: 35%;
+    height: 30%;
+    overflow: hidden;
+    z-index: 3;
+}
 
+#wongame {
+    display:none;
+    position: absolute;
+    width: 35%;
+    height: 30%;
+    overflow: hidden;
+    z-index: 3;
+}
+
+#lost, #win{
+    position: absolute;
+    bottom: 55%;
+    left: 50%;
+    transform: translateX(-53%);
+    padding: 0.2px;
+    font-size: 30px;
+    white-space: nowrap;
+}
+
+#points, #point{
+    position: absolute;
+    bottom: 35%;
+    left: 50%;
+    transform: translateX(-53%);
+    padding: 0.2px;
+    font-size: 25px;
+    white-space: nowrap;
+}
+
+#startagain, #liking{
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
