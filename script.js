@@ -79,10 +79,10 @@ const level = [
     "                                                     C  C  C  C                                                                                                                                                                                                                                           ",
     "                                                                                                                                                                                                                                                                                                          ",
     "        BCBBB                                                      S   S                                  S                                                                                                                                                                                               ",
-    "                  BBBB                                                                                      $ € € € € ?                                                              BBBCCC                               M                                                      B                        ",
-    "                           BMBBB                                                                                                                                       BBBBB                                                         S                               C        B  B                        ",
-    "                                                    $ € € € € € € € € € ?                             $ € € X X X X X #       BCBCBCBCBCB              BCBCCCBCB                                                                                                           B  B  B                        ",
-    "                                   S                                                                                                 S     S                                                             S                                                              B  B  B  B                        ",
+    "                  BBBB                                                                                      $ € € € € ?                                                                                                        M                                                 B                        ",
+    "                           BMBBB                                                                                                                                       BBBBB                                                         S                                        B  B                        ",
+    "                                                    $ € € € € € € € € € ?                             $ € € X X X X X #       BCBCBCBCBCB              BCBCCCBCB                     BBBCCC                                                             CCC                B  B  B                        ",
+    "                                   S                                                                                                 S     S                                                             S                                       S                      B  B  B  B                        ",
     "                                                    ! X X X X X X X X X #                       $ € € X X X X X X X X #                                                                                                   $ € € € € € ?                              B  B  B  B  B                        ",
     "                                                                                                                                                                                                                                                                                                          ",
     "$ € € € € € € € € € € € € € € € € € ?     $ € € € € X X X X X X X X X X X € € € € € ?       $ € € X X X X X X X X X X € € € € € € € € € € € € ?       $ € € € € € € € € ?                $ € € € € € € € € ?        $ € € X X X X X X #      $ € € € € € € € € € € € € € € € € € € € € € € € € € € € € € ?",
@@ -606,10 +606,12 @@ function clampCam() {
 
 //prallax
 function updateParallax() {
-    background.style.backgroundPositionX = -(camX * 0.2) + "px";
-    pBack.style.backgroundPositionX = -(camX * 0.4) + "px";
-    pFront.style.backgroundPositionX = -(camX * 0.6) + "px";
+  background.style.backgroundPositionX = snap(-(camX * 0.12)) + "px";
+  pBack.style.backgroundPositionX      = snap(-(camX * 0.25)) + "px";
+  pFront.style.backgroundPositionX     = snap(-(camX * 0.45)) + "px";
 }
+
+
 
 //sincronizzazione passi personaggio a controlli
 let lastRunDur = null;
@@ -637,6 +639,46 @@ if (onGround && speed > 1) {
         resetRunDur();
 }
 
+// --- viewport cache ---
+let viewportWidth  = background.clientWidth  | 0;
+let viewportHeight = background.clientHeight | 0;
+
+function updateViewport(){
+  viewportWidth  = background.clientWidth  | 0;
+  viewportHeight = background.clientHeight | 0;
+}
+
+window.addEventListener('resize', () => {
+  updateViewport();
+  layoutParallax();
+});
+
+// --- snap per evitare righe bianche ---
+function snap(x){ return (x + 0.5) | 0; }
+
+// --- parallax ancorato alle tile ---
+function layoutParallax(){
+  const hillsFromGround = 1 * cell;
+  const cloudsFromTop   = 1 * cell;
+
+  const hillsH  = Math.round(viewportHeight * 0.45); 
+  const cloudsH = Math.round(viewportHeight * 0.30); 
+
+  pBack.style.backgroundSize  = `auto ${hillsH}px`;
+  pBack.style.backgroundPosition = `left calc(100% - ${hillsFromGround}px)`;
+
+  pFront.style.backgroundSize = `auto ${cloudsH}px`;
+  pFront.style.backgroundPosition = `left ${cloudsFromTop}px`;
+
+  background.style.backgroundSize = `auto ${viewportHeight}px`;
+  background.style.backgroundPosition = `left bottom`;
+}
+
+function updateParallax() {
+  background.style.backgroundPositionX = snap(-(camX * 0.12)) + "px";
+  pBack.style.backgroundPositionX      = snap(-(camX * 0.25)) + "px";
+  pFront.style.backgroundPositionX     = snap(-(camX * 0.45)) + "px";
+}
 
 // --- GAME LOOP ---
 let lastTime = null;
@@ -701,17 +743,23 @@ function loop(t) {
   }
 
   // Aggiornamento camera
-  const viewportWidth = background.getBoundingClientRect().width;
   camX = x - viewportWidth / 2 + playerdimensions.w / 2;
-  
+  camX = snap(camX);
   clampCam();
 
   world.style.setProperty('--camX', camX + 'px');
 
   // Limiti e rendering
+  updateViewport();
   applyPosition();
+  layoutParallax();
   updateParallax();
   updateAnimation();
+
+  window.addEventListener('resize', () => {
+  updateViewport();
+  layoutParallax();
+  });
 
   requestAnimationFrame(loop);
 }
@@ -719,5 +767,3 @@ function loop(t) {
 // Posizione iniziale visiva e avvio
 applyPosition();
 requestAnimationFrame(loop);
-
-
