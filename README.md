@@ -1,42 +1,42 @@
 # Simone’s Life
 
-Un piccolo platform 2D in **HTML/CSS/JS** con tilemap, parallax, collezionabili e nemici “ragni”.
+A small 2D platformer in **HTML/CSS/JS** with a tilemap, parallax, collectibles, and “spider” enemies.
 
-Premi **Spazio** per iniziare, muoviti con le frecce, salta, raccogli gli oggetti, schiaccia o sconfiggi i ragni!
+Press **Space** to start, move with the arrow keys, jump, pick up items, stomp or defeat the spiders!
 
 ---
 
 ## 🕹️ Gameplay
 
-- **Start**: schermata iniziale con titolo; premendo **Spazio** scompare l’overlay e parte il gioco.
-- **Movimento**
-  - **← / →** muovi il personaggio  
-  - **↑** salta
-- **Punti**: raccogli le **coke** per aumentare lo score.
-- **Power-up Paolino**: raccogli il **burger** per trasformarti in *Paolino* per un tempo limitato.  
-  - Quando *Paolino* è attivo, premi **S** per un **attacco** (animazione one-shot) che uccide un ragno entro un raggio configurabile.
-- **Nemici (ragni)**
-  - Camminano autonomamente, girano davanti ai muri e non cadono dai bordi.  
-  - **Schiacciamento**: se li colpisci **dall’alto** mentre stai scendendo, muoiono e rimbalzi leggermente.
-  - **Contatto laterale**: sconfitta (schermata di “You Lose”).
-- **Vittoria**: raggiungi il traguardo a destra del livello. *(L’eventuale condizione “tutti i ragni morti” è disattivata di default.)*
-- **Sconfitta**: vai a sbattere contro un ragno **oppure** cadi nel vuoto tra i blocchi.
-- **Restart**: a partita finita, premi **Spazio** per ricominciare (lo **score viene azzerato**).
+- **Start**: title screen; pressing **Space** hides the overlay and the game begins.
+- **Movement**
+  - **← / →** move the character  
+  - **↑** jump
+- **Score**: collect **cokes** to increase your score.
+- **Paolino Power-up**: pick up the **burger** to transform into *Paolino* for a limited time.  
+  - While *Paolino* is active, press **S** to **attack** (one-shot animation) that kills a spider within a configurable radius.
+- **Enemies (spiders)**
+  - They walk on their own, turn around at walls, and don’t fall off edges.  
+  - **Stomp**: if you hit them **from above** while descending, they die and you bounce slightly.
+  - **Side contact**: defeat (shows a “You Lose” screen).
+- **Win**: reach the goal at the right end of the level. *(The optional “all spiders must be dead” condition is off by default.)*
+- **Lose**: run into a spider **or** fall into the gaps.
+- **Restart**: after the game ends, press **Space** to try again (**score resets**).
 
 ---
 
-## ✨ Caratteristiche tecniche
+## ✨ Technical Features
 
-- **Tilemap ASCII** con *legend* che mappa caratteri → classi CSS/proprietà (solido, dimensioni, payload).
-- **Parallax** a tre layer (`background`, `parallax-back`, `parallax-front`) agganciato alla camera.
-- **Fisica semplice**: gravità, salto, limite alla velocità di caduta, collisioni AABB.
-- **Entity system** per i nemici (gravità, AI base, giro davanti ai muri).
-- **Items**: blocchi sorpresa che droppano **coke** (punti) e **burger** (power-up Paolino).
-- **Animazioni CSS**: idle/run/jump/fall, *Paolino attack* (sheet) e *Spider walk*, sincronizzate con la velocità di corsa.
+- **ASCII tilemap** with a *legend* that maps characters → CSS classes/properties (solid, size, payload).
+- **Three-layer parallax** (`background`, `parallax-back`, `parallax-front`) tied to the camera.
+- **Simple physics**: gravity, jump, terminal fall speed, AABB collisions.
+- **Entity system** for enemies (gravity, basic AI, turn at walls).
+- **Items**: surprise blocks that drop **cokes** (points) and **burgers** (Paolino power-up).
+- **CSS animations**: idle/run/jump/fall, *Paolino attack* (sheet) and *Spider walk*, synced to run speed.
 
 ---
 
-## 🧩 Legend della tilemap
+## 🧩 Tilemap Legend
 
 ```js
 const legend = {
@@ -55,16 +55,16 @@ const legend = {
 ```
 ---
 
-## 🗺️ Roadmap (idee)
-- Più livelli / caricamento da file
-- Checkpoint
-- Audio (salto, item, kill, win/lose)
-- HUD avanzato (vite, timer)
-- Altri nemici / pattern di movimento
+## 🗺️ Roadmap (ideas)
+- More levels / load from file
+- Checkpoints
+- Audio (jump, item, kill, win/lose)
+- Advanced HUD (lives, timer)
+- More enemies / movement patterns
 - Mobile touch controls
 ---
 
-## 📜 Licenze & Crediti
+## 📜 Licenses & Credits
 
-Codice: specifica la licenza (es. MIT) se vuoi che altri possano riutilizzarlo.
-Sprite, tile e sfondi: Sophiaacodes.
+Code: specify a license (e.g., MIT) if you want others to reuse it.
+Sprites, tiles, and backgrounds: Sophiaacodes.
