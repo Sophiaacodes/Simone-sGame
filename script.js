@@ -6,6 +6,10 @@ const pBack  = document.getElementById("parallax-back");
 const pFront = document.getElementById("parallax-front");
 const world  = document.getElementById("world");
 const levelEl = document.getElementById("level");
+const lostPanel = document.getElementById("lostgame");
+const winPanel  = document.getElementById("wongame");
+const pointsLoseEl = document.getElementById("points"); 
+const pointsWinEl  = document.getElementById("point");  
 
 //scoreboard
 const scoreBoard = document.createElement("div");
@@ -71,19 +75,19 @@ const legend = {
 };
 
 const level = [
-    "                                                                                     ",
-    "                                                                                     ",
-    "                                                                                     ",
-    "        BCBBB                                                                        ",
-    "                  BBBB                                                               ",
-    "                           BMBBB                                                     ",
-    "                                                    $ € € € € € € € € € ?            ",
-    "                                   S                                                 ",
-    "                                                    ! X X X X X X X X X #            ",
-    "                                                                                     ",
-    "$ € € € € € € € € € € € € € € € € € ?     $ € € € € X X X X X X X X X X X € € € € € ?",
-    "                                                                                     ",
-    "! X X X X X X X X X X X X X X X X X #     ! X X X X X X X X X X X X X X X X X X X X #"
+    "                                                                                                                      M                                                                                                                                                           C                        ",
+    "                                                     C  C  C  C                                                                                                                                                                                                                                           ",
+    "                                                                                                                                                                                                                                                                                                          ",
+    "        BCBBB                                                      S   S                                  S                                                                                                                                                                                               ",
+    "                  BBBB                                                                                      $ € € € € ?                                                              BBBCCC                               M                                                      B                        ",
+    "                           BMBBB                                                                                                                                       BBBBB                                                         S                               C        B  B                        ",
+    "                                                    $ € € € € € € € € € ?                             $ € € X X X X X #       BCBCBCBCBCB              BCBCCCBCB                                                                                                           B  B  B                        ",
+    "                                   S                                                                                                 S     S                                                             S                                                              B  B  B  B                        ",
+    "                                                    ! X X X X X X X X X #                       $ € € X X X X X X X X #                                                                                                   $ € € € € € ?                              B  B  B  B  B                        ",
+    "                                                                                                                                                                                                                                                                                                          ",
+    "$ € € € € € € € € € € € € € € € € € ?     $ € € € € X X X X X X X X X X X € € € € € ?       $ € € X X X X X X X X X X € € € € € € € € € € € € ?       $ € € € € € € € € ?                $ € € € € € € € € ?        $ € € X X X X X X #      $ € € € € € € € € € € € € € € € € € € € € € € € € € € € € € ?",
+    "                                                                                                                                                                                                                                                                                                          ",
+    "! X X X X X X X X X X X X X X X X X #     ! X X X X X X X X X X X X X X X X X X X X #       ! X X X X X X X X X X X X X X X X X X X X X X X X #       ! X X X X X X X X #                ! X X X X X X X X #        ! X X X X X X X X #      ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X #"
 ];
 
 function aabbOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
@@ -188,6 +192,8 @@ function applyPosition () {
 
 //animazioni personaggio
 function updateAnimation() {
+    if (isAttacking) return; 
+
     const skin = paolinoActive ? 'paolino' : 'player';
     const other = paolinoActive ? 'player' : 'paolino';
 
@@ -214,9 +220,10 @@ function updateAnimation() {
   else                           player.style.transform = null;
 };
 
+let facing = 1;
 document.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowRight"){keys.right = true; updateAnimation();}
-    if (event.key === "ArrowLeft"){keys.left = true; updateAnimation();}
+    if (event.key === "ArrowRight"){keys.right = true; facing=1; updateAnimation();}
+    if (event.key === "ArrowLeft"){keys.left = true; facing= -1; updateAnimation();}
     if (event.key === "ArrowUp") {
         if (onGround){
             keys.up = true; 
@@ -297,6 +304,39 @@ function moveSpider(e, dt){
   e.el.style.transform = e.dir < 0 ? 'scaleX(-1)' : 'scaleX(1)';
 }
 
+//uccisione dei nemici
+function killSpider(e) {
+    if (!e.alive) return;
+    e.alive = false;
+
+    e.el.classList.remove('walk');
+    e.el.style.animation = 'none';
+
+    e.el.animate(
+        [{ transform: 'scaleY(1)', opacity: 1 }, { transform: 'scaleY(0.5)', opacity: 0 }],
+    { duration: 200, easing: 'ease-out', fill: 'forwards' }
+  );
+  setTimeout(() => e.el.remove(), 220);
+}
+
+function handlePlayerEnemyInteractions() {
+    const stomp_eps = 6;
+    for (const e of enemies) {
+        if (!e.alive) continue;
+        if (!aabbOverlap(x, y, playerdimensions.w, playerdimensions.h, e.x, e.y, e.w,e.h)) continue;
+
+        const playerBottom = y;
+        const playerIsMovingDown = vy < 0;
+
+        if (playerIsMovingDown && playerBottom >= e.y + e.h - stomp_eps){
+            killSpider(e);
+            vy = jumpSpeed * 0.55;
+            continue;
+        }
+        showLose("hit-spider");
+        return;
+    }
+}
 
 //collisioni mondo e movimento
 function moveAndCollideX(dx){
@@ -434,6 +474,125 @@ function activatePaolinoPower(ms = 30000) {
     updateAnimation();
 };
 
+//paolino vs enemy
+const attack_range_tile = 6; 
+let isAttacking = false; 
+
+document.addEventListener("keydown", (event) =>{
+    if ((event.key === 's' || event.key === 'S') && paolinoActive && !isAttacking) {
+    const target = findSpiderInRange(attack_range_tile * cell); // 2 tile = 64px
+    if (target) {
+      doPaolinoAttack(target);
+    }
+  }
+});
+
+function findSpiderInRange(
+    rangePx=attack_range_tile*cell,
+    ) {
+    const pxCenter = x + playerdimensions.w /2;
+    let best = null, bestDist = Infinity;
+
+    for (const e of enemies) {
+        if (!e.alive) continue;
+        const exCenter = e.x + e.w /2;
+        const dx = Math.abs(exCenter -pxCenter);
+        const verticallyClose = Math.abs((y + playerdimensions.h/2) - (e.y + e.h/2)) <= cell*2;
+        if (dx <= rangePx && verticallyClose && dx < bestDist) {
+            best = e; bestDist = dx; }      
+    }
+    return best;
+};
+
+function doPaolinoAttack(target){
+    isAttacking = true;
+    
+    player.style.transform = (keys.left && !keys.right) ? 'scaleX(-1)' : null;
+    player.classList.remove('paolino-attack');
+    void player.offsetWidth; 
+
+    player.classList.remove('idle','player-run','player-jump','player-fall','paolino-idle','paolino-run','paolino-jump','paolino-fall');
+    player.classList.add('paolino-attack')
+
+    const attack_ms = 600;
+    const oldVx = vx;
+    vx = 0;
+
+    setTimeout(()=>{
+        if (target.alive) killSpider(target);
+
+        player.classList.remove('paolino-attack');
+        vx = oldVx;
+
+        updateAnimation();
+
+        isAttacking = false;
+    }, attack_ms);
+};
+
+//stato di gioco (punto di arrivo, reset gioco)
+let gameOver = false;
+let youWin = false;
+
+const finishX = Math.max(0, levelWidth - 2*cell);
+
+function showLose(reason = ""){
+    if (gameOver) return;
+    gameOver = true;
+    youWin = false;
+
+    vx=0; vy=0;
+    pointsLoseEl.textContent = `Points: ${cokeCount}`;
+    lostPanel.style.display = "block";
+}
+
+function showWin(reason = "") {
+  if (gameOver) return;
+  gameOver = true;
+  youWin = true;
+
+  vx = 0; vy = 0;
+  pointsWinEl.textContent = `Points: ${cokeCount}`;
+  winPanel.style.display = "block";
+}
+
+function resetGame() {
+    lostPanel.style.display = "none";
+    winPanel.style.display ="none";
+
+    gameOver = false;
+    youWin = false;
+    gameStarted = true;
+    overlayRemoved = true;
+
+    //reset cokecount
+    cokeCount = 0;
+    updateScoreBoard();
+
+    // reset posizione player
+    x = 200; y = 130; vx = 0; vy = 0; camX = 0; onGround = false;
+
+    // ricostruisci livello e nemici
+    levelEl.innerHTML = "";
+    buildLevel(level, legend);
+
+    // ripristina animazioni player
+    isAttacking = false;
+    player.className = "player idle";
+
+    applyPosition();
+};
+
+//space per riniziare
+document.addEventListener("keydown", (e) => {
+  // se il gioco è finito, SPACE fa ripartire
+  if (gameOver && e.key === " ") {
+    e.preventDefault();
+    resetGame();
+  }
+});
+
+//
 
 //Camera
 let camX = 0;
@@ -453,30 +612,31 @@ function updateParallax() {
 }
 
 //sincronizzazione passi personaggio a controlli
- let lastRunDur = null;
-  function setRunDur(dur) {
+let lastRunDur = null;
+function setRunDur(dur) {
   if (lastRunDur === null || Math.abs(dur - lastRunDur) > 0.04) {
     player.style.setProperty('--run-dur', `${dur}s`);
     lastRunDur = dur;
         }
-    }
+}
 
-  function resetRunDur() {
+function resetRunDur() {
   if (lastRunDur !== run_ref_dur) {
     player.style.setProperty('--run-dur', `${run_ref_dur}s`);
     lastRunDur = run_ref_dur;
         }
-    }
+}
 
-  const speed = Math.abs(vx);
-    if (onGround && speed > 1) {
+const speed = Math.abs(vx);
+if (onGround && speed > 1) {
       let dur = (run_ref_speed / speed) * run_ref_dur;
       if (dur < run_min_dur) dur = run_min_dur;
       if (dur > run_max_dur) dur = run_max_dur;
       setRunDur(dur);
     } else {
         resetRunDur();
-    }
+}
+
 
 // --- GAME LOOP ---
 let lastTime = null;
@@ -484,6 +644,14 @@ function loop(t) {
   if (lastTime == null) lastTime = t;
   const dt = Math.min((t - lastTime) / 1000, 1/60);
   lastTime = t;
+
+  //gameover
+  if (gameOver) {
+  applyPosition();
+  updateParallax();
+  requestAnimationFrame(loop);
+  return;
+  }
 
   // Input → velocità orizzontale
   const dir = (keys.right ? 1 : 0) + (keys.left ? -1 : 0);
@@ -511,11 +679,26 @@ function loop(t) {
   //far muovere i nemici
   for (const e of enemies) {
     if (!e.alive) continue;
+    if (gameOver) break; 
     moveSpider(e, dt);   
   }
 
+  //caduta nel vuoto
+  if (!gameOver) {
+  if (y < -64) { // sei caduta oltre la base dello schermo
+    showLose("fell");
+    }
+  }
+
+  // interazioni player ↔ spider (stomp / danno)
+  handlePlayerEnemyInteractions();
 
   updateItems(dt);
+
+  // VITTORIA: raggiungi il traguardo a destra
+  if (!gameOver && x >= finishX) {
+    showWin("reach-end");
+  }
 
   // Aggiornamento camera
   const viewportWidth = background.getBoundingClientRect().width;
