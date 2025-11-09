@@ -658,7 +658,7 @@ function snap(x){ return (x + 0.5) | 0; }
 
 // --- parallax ancorato alle tile ---
 function layoutParallax(){
-  const hillsFromGround = 1 * cell;
+  const hillsFromGround = 0 * cell;
   const cloudsFromTop   = 1 * cell;
 
   const hillsH  = Math.round(viewportHeight * 0.35); 
