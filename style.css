@@ -89,11 +89,13 @@ html, body{
     height: 100vh;
     overflow: hidden;
     background: url("./assets/bg/mountains.webp") repeat-x top left;
-    background-size: 1140px auto;
+    background-position: left bottom;      
+    background-size: auto 100vh;   
+    will-change: background-position;        
 }
 
 #parallax-back, #parallax-front {
-    position: absolute;
+    position: fixed;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
@@ -102,21 +104,19 @@ html, body{
     background-repeat: repeat-x;
     background-size: 1028px auto;
     image-rendering: pixelated;
+    will-change: background-position;
 }
 
 #parallax-back {
     background-image: url("./assets/bg/hills.webp");
-    background-repeat: repeat-x bottom left;
+    background-repeat: repeat-x bottom left;                 
     opacity: .9;
     z-index: 0;
-    top: 290px;
 }
 #parallax-front {
     background-image: url("./assets/bg/clouds.webp"); 
-    background-size: 800px auto;
     opacity: .55;
     z-index: 2;
-    top: 50px;
 }
 
 #ground {
@@ -135,7 +135,7 @@ html, body{
 #world {
     position: absolute;
     inset: 0;
-    z-index: 99999 !important;
+    z-index: 10 !important;
     --camX: 0px;
 }
 
@@ -154,6 +154,8 @@ html, body{
     background-repeat: no-repeat;
     background-size: 100% 100%;
     image-rendering: pixelated;
+    backface-visibility: hidden;
+    transform: translateZ(0);  
 }
 
 .tile.ground.normal {
